@@ -1,2 +1,4 @@
 envs
 .vscode
+*.pyc 
+__pycache__

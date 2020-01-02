@@ -1,5 +1,9 @@
+from application import Application
+
+
 def main():
-    pass
+    app = Application()
+    app.run_forever()
 
 
 if __name__ == '__main__':
