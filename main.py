@@ -1,8 +1,10 @@
 from application import Application
+from application_manager import ApplicationManager
 
 
 def main():
-    app = Application()
+    manager = ApplicationManager()
+    app = Application(manager)
     app.run_forever()
 
 
