@@ -1,5 +1,5 @@
-import pygame
 import sys
+import pygame
 from application_manager import ApplicationManager
 
 pygame.init()
@@ -15,6 +15,7 @@ class Application:
         self.setup_manager(manager)
         self.setup_screen()
         self.setup_background()
+        self.clock = pygame.time.Clock()
 
     def setup_manager(self, manager):
         self.manager = manager
@@ -38,4 +39,5 @@ class Application:
         while True:
             for event in pygame.event.get():
                 self.manager.dispatch(event)
-                self.render()
+            self.render()
+            self.clock.tick(60)
