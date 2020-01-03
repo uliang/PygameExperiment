@@ -1,26 +1,40 @@
 import pygame
-import math
+import itertools
+from events import *
 
 pygame.init()
 
 
-def title(app):
-    title_font = pygame.font.SysFont(None, 60)
-    title_color = (255, 255, 255)
-    title = title_font.render(
-        "Joe Dever's Lone Wolf", True, title_color)
-    titlepos = title.get_rect(centerx=app.screen.get_width()/2,
-                              centery=app.screen.get_height()/2)
-    app.background.blit(title, titlepos)
+class Splash:
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
 
-    subtitle_font = pygame.font.SysFont(None, 30)
-    subtitle = subtitle_font.render(
-        "Press any key", True, title_color)
-    subtitle_offset = 50
+    def __init__(self, app):
+        self.app = app
+        self.setup_title(app)
+        self.setup_subtitle(app)
+        self.blinker = pygame.Surface(self.subtitle_rect.size)
+        self.cycler = itertools.cycle([self.blinker, self.subtitle])
 
-    if app.manager.wipe:
-        subtitle = pygame.Surface(subtitle.get_rect().size)
+    def setup_title(self, app):
+        title_font = pygame.font.SysFont(None, 60)
+        self.title = title_font.render(
+            "Joe Dever's Lone Wolf", True, self.WHITE, self.BLACK)
+        self.title_rect = self.title.get_rect(centerx=app.screen.get_width()/2,
+                                              centery=app.screen.get_height()/2)
 
-    subtitlepos = subtitle.get_rect(centerx=app.screen.get_width()/2,
-                                    centery=app.screen.get_height()/2+subtitle_offset)
-    app.background.blit(subtitle, subtitlepos)
+    def setup_subtitle(self, app):
+        subtitle_offset = 50
+        subtitle_font = pygame.font.SysFont(None, 30)
+        self.subtitle = subtitle_font.render(
+            "Press any key", True, self.WHITE, self.BLACK)
+        self.subtitle_rect = self.subtitle.get_rect(centerx=app.screen.get_width()/2,
+                                                    centery=app.screen.get_height()/2+subtitle_offset)
+
+    def render(self, app):
+        for event in pygame.event.get(BLINK):
+            surf = next(self.cycler)
+            app.background.blit(surf, self.subtitle_rect)
+        app.background.blit(self.title, self.title_rect)
+        app.screen.blit(app.background, app.TOP_LEFT)
+        pygame.display.flip()

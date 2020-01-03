@@ -1,6 +1,7 @@
 import sys
 import pygame
 from application_manager import ApplicationManager
+from events import *
 
 pygame.init()
 
@@ -19,7 +20,7 @@ class Application:
 
     def setup_manager(self, manager):
         self.manager = manager
-        self.manager(self)
+        self.manager.context = self
 
     def setup_screen(self):
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
@@ -30,14 +31,13 @@ class Application:
         self.background = self.background.convert()
         self.background.fill(self.DEFAULT_COLOR)
 
-    def render(self):
-        self.manager.update()
-        self.screen.blit(self.background, self.TOP_LEFT)
-        pygame.display.flip()
-
     def run_forever(self):
+        start_sig = pygame.event.Event(ENTRY)
+        pygame.event.post(start_sig)
         while True:
-            for event in pygame.event.get():
-                self.manager.dispatch(event)
-            self.render()
+            for event in pygame.event.get(pygame.QUIT):
+                sys.exit()
+            self.manager()
+            # for event in pygame.event.get():
+            #     pass
             self.clock.tick(60)
