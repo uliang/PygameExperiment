@@ -1,10 +1,20 @@
+import pygame
 from application import Application
-from application_manager import ApplicationManager
+from lib.subject import Subject
+from lib.window_factory import WindowFactory
+import lib.manager
+from views import *
 
 
 def main():
-    manager = ApplicationManager()
-    app = Application(manager)
+    lib.manager.Scenes.register({
+        'splash': Splash,
+        'game': Game,
+    })
+    lib.manager.Event.register(Subject())
+    window = WindowFactory()
+    lib.manager.Window.register(window.screen, window.background)
+    app = Application()
     app.run_forever()
 
 
