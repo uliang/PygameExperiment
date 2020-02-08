@@ -4,8 +4,6 @@ import pygame.mask as mask
 from pygame.math import Vector2
 from pygame import Surface, Rect
 
-from game_systems.enums import States
-
 
 class Brick(sprite.Sprite):
     def __init__(self, surf: Surface, position: Rect, fps: int, *groups):
@@ -31,8 +29,9 @@ class Brick(sprite.Sprite):
     def stop(self):
         self.v_x = 0
 
-    def drop(self):
+    def land(self):
         self.v_y = 0
+        self.v_x = 0
 
     def update(self, frame: int):
         if self.speed:

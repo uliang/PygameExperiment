@@ -1,5 +1,5 @@
 import random
-from typing import Sequence, Callable, TypeVar, Iterator
+from typing import Sequence, Callable, TypeVar, Iterator, Tuple
 from toolz.functoolz import curry
 
 from game_objects.brick import Brick
@@ -28,3 +28,29 @@ def yield_random(arr: Sequence[T]) -> Iterator[T]:
     ''' Yields a random object from sequence of of objects '''
     while True:
         yield random.choice(arr)
+
+
+def eraser(color):
+    ''' Callback to use in group.clear method '''
+    def callback(surf, rect):
+        surf.fill(color, rect)
+    return callback
+
+
+def rotator(center: Tuple[int, int], vertex: Tuple[int, int]) -> Tuple[int, int]:
+    ''' Returns coordinates of vertex after being acted upon by: aff(a,b) * rot(90) * aff(-a,-b)'''
+    a, b = center
+    x, y = vertex
+    return (a-b+y, a+b-x)
+
+
+def grid_centroid(well_offset, grid_spacing, bricks: Sequence[Brick], ) -> Tuple[int, int]:
+    ''' Returns nearest grid point to the centroid of tile '''
+    left, top = well_offset
+    rect1, *other_rects = [brick.rect for brick in bricks]
+    tile_rect = rect1.unionall(other_rects)
+    xbar, ybar = tile_rect.center
+    xbar, ybar = xbar-left, ybar-top
+    xbar, ybar = left + (xbar//grid_spacing) * \
+        grid_spacing, top + (ybar//grid_spacing)*grid_spacing
+    return xbar, ybar
