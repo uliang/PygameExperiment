@@ -7,7 +7,6 @@ import pygame.image as image
 
 from game_objects.brick import Brick
 from game_objects.tile import Tile
-from game_objects.application_config import ApplicationConfig
 
 
 def make_I(rect: Rect, bw: int) -> Sequence[Rect]:

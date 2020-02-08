@@ -20,14 +20,10 @@ class Heap(sprite.Group):
             collisions = []
             for offset in directions:
                 def _collided(sprite1, sprite2):
-                    sprite_pos1 = Vector2(sprite1.rect.topleft)
-                    sprite_pos2 = Vector2(sprite2.rect.topleft)
-                    positional_offset = sprite_pos2 - \
-                        sprite_pos1 + Vector2(offset)
-
-                    # arguments to overlap method are list[int, int]
-                    x_, y_ = positional_offset
-                    positional_offset = [int(x_), int(y_)]
+                    x1, y1 = sprite1.rect.topleft
+                    x2, y2 = sprite2.rect.topleft
+                    x0, y0 = offset
+                    positional_offset = (x2-x1+x0, y2-y1+y0)
 
                     overlap = sprite1.mask.overlap(
                         sprite2.mask, positional_offset)

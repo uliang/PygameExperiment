@@ -2,7 +2,7 @@ import os
 from pygame.color import Color
 
 
-class ApplicationConfig:
+class Configuration:
     S_CAPTION = 'Tetris'
     S_HEIGHT = 600
     S_WIDTH = 800
