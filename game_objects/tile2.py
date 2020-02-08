@@ -14,25 +14,25 @@ from game_objects.application_config import ApplicationConfig
 from game_systems.enums import Directions, States
 
 
-class Block(sprite.Sprite):
+class Tile(sprite.Sprite):
     def __init__(self, tile_surf: pygame.Surface, background: pygame.Surface,
-                 initial_pos: Tuple[int], initial_drop_rate: int, h_move_rate: int,
-                 speed_x: int, speed_y: int):
-        super().__init__()
+                 initial_pos: Tuple[int], initial_FALL_SPEED: int, h_move_rate: int,
+                 speed_x: int, speed_y: int, *groups):
+        super().__init__(*groups)
         self.background = background
 
-        self.block = tile_surf
-        self.rect = self.block.get_rect()
+        self.image = tile_surf
+        self.rect = self.image.get_rect()
         self.mask = mask.from_surface(tile_surf)
         self.new_pos = None
-        self.block_patch = pygame.Surface(tile_surf.get_size()).convert()
-        self.block_patch.fill(background.get_at((0, 0)))
+        self.image_patch = pygame.Surface(tile_surf.get_size()).convert()
+        self.image_patch.fill(background.get_at((0, 0)))
 
         self.rect.topleft = initial_pos
         self.speed_y = speed_y
         self.speed_x = speed_x
-        self.initial_drop_rate = initial_drop_rate
-        self.drop_rate = initial_drop_rate
+        self.initial_FALL_SPEED = initial_FALL_SPEED
+        self.FALL_SPEED = initial_FALL_SPEED
         self.h_move_rate = h_move_rate
 
         self.dir_vector = [0, 0]
@@ -40,20 +40,20 @@ class Block(sprite.Sprite):
         self.state = States.DROPPING
 
     def render(self):
-        self.background.blit(self.block, self.rect)
+        self.background.blit(self.image, self.rect)
         screen = display.get_surface()
         screen.blit(self.background, screen.get_rect())
 
     def update(self):
         self.new_pos = self.rect.move(*self.dir_vector)
-        self.background.blit(self.block_patch, self.rect)
+        self.background.blit(self.image_patch, self.rect)
         self.rect = self.new_pos
         self.render()
         self.dir_vector = [0, 0]
         event.pump()
 
     def drop(self, frame_counter: int):
-        tick = frame_counter % self.drop_rate
+        tick = frame_counter % self.FALL_SPEED
         if tick == 0:
             self.dir_vector[1] += self.speed_y
 
@@ -66,16 +66,16 @@ class Block(sprite.Sprite):
                 self.dir_vector[0] += 1 * self.speed_x
 
     def rotate(self, max_depth: int):
-        self.block = transform.rotate(self.block, 90)
-        self.mask = mask.from_surface(self.block)
+        self.image = transform.rotate(self.image, 90)
+        self.mask = mask.from_surface(self.image)
         x_, y_ = self.rect.topleft
-        self.new_pos = self.block.get_rect()
+        self.new_pos = self.image.get_rect()
         self.new_pos.move_ip(x_, y_)
         if self.new_pos.bottom >= max_depth:
             dy = max_depth - self.new_pos.bottom
             self.new_pos.move_ip(0, dy)
-        self.background.blit(self.block_patch, self.rect)
-        self.block_patch = transform.rotate(self.block_patch, 90)
+        self.background.blit(self.image_patch, self.rect)
+        self.image_patch = transform.rotate(self.image_patch, 90)
         self.rect = self.new_pos
 
     def stop(self):
@@ -96,28 +96,28 @@ class Block(sprite.Sprite):
     def set_state(self, state: States):
         self.state = state
 
-    def set_block_drop_rate(self, gravity: Optional[int] = None):
-        if gravity:
-            self.drop_rate = gravity
+    def set_tile_FALL_SPEED(self, DIVE_SPEED: Optional[int] = None):
+        if DIVE_SPEED:
+            self.FALL_SPEED = DIVE_SPEED
             return
-        self.drop_rate = self.initial_drop_rate
+        self.FALL_SPEED = self.initial_FALL_SPEED
 
 
-def block_factory(asset_path: str, image_path: str,
-                  background: pygame.Surface, initial_pos: Tuple[int],
-                  block_shape: Tuple[int], h_move_rate: int, speed_x: int,
-                  speed_y: int) -> Optional[Iterator[Block]]:
+def tile_factory(asset_path: str, image_path: str,
+                 background: pygame.Surface, initial_pos: Tuple[int],
+                 tile_shape: Tuple[int], h_move_rate: int, speed_x: int,
+                 speed_y: int) -> Optional[Iterator[Tile]]:
     def gen_f():
         tile_surf = image.load(os.path.join(asset_path, image_path))
         tile_surf = tile_surf.convert().convert_alpha()
-        tile_surf = transform.scale(tile_surf, block_shape)
+        tile_surf = transform.scale(tile_surf, tile_shape)
 
-        block = None
+        tile = None
         while True:
-            drop_rate = yield block
-            if drop_rate:
-                block = Block(tile_surf, background, initial_pos,
-                              drop_rate, h_move_rate, speed_x, speed_y)
+            FALL_SPEED = yield tile
+            if FALL_SPEED:
+                tile = Tile(tile_surf, background, initial_pos,
+                            FALL_SPEED, h_move_rate, speed_x, speed_y)
     gen_ = gen_f()
     next(gen_)
     return gen_
