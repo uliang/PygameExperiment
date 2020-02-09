@@ -1,5 +1,5 @@
-# PygameExperiment
-Using reactive programming library Rx and SDL wrapping library pygame to create a simple Tetris game with Python
+# Pygame Experiment: Tetris
+Using reactive programming library Rx and SDL wrapping library pygame to create a simple Tetris game with Python.
 
 To run this program, install dependencies by executing this command: `python -m pip install -r requirements.txt` on your command line
 with Python already installed. 
