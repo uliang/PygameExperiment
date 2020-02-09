@@ -1,3 +1,4 @@
+from typing import Dict
 import pygame.sprite as sprite
 from pygame.math import Vector2
 from pygame.event import post, Event
@@ -15,22 +16,19 @@ class Heap(sprite.Group):
         self.clear(self.background, eraser(self.background.get_at((0, 0))))
         self.draw(self.background)
 
-    def did_collide(self, *directions):
-        def callback(tile) -> bool:
-            collisions = []
-            for offset in directions:
-                def _collided(sprite1, sprite2):
-                    x1, y1 = sprite1.rect.topleft
-                    x2, y2 = sprite2.rect.topleft
-                    x0, y0 = offset
-                    positional_offset = (x2-x1+x0, y2-y1+y0)
+    def did_collide(self, offset):
+        def callback(group) -> Dict:
+            def _collided(sprite1, sprite2):
+                x1, y1 = sprite1.rect.topleft
+                x2, y2 = sprite2.rect.topleft
+                x0, y0 = offset
+                positional_offset = (x2-x1-x0, y2-y1-y0)
 
-                    overlap = sprite1.mask.overlap(
-                        sprite2.mask, positional_offset)
-                    return bool(overlap)
+                overlap = sprite1.mask.overlap(
+                    sprite2.mask, positional_offset)
+                return bool(overlap)
 
-                collision_dict = sprite.groupcollide(
-                    self, tile, False, False, _collided)
-                collisions.append(bool(collision_dict))
-            return any(collisions)
+            collision_dict = sprite.groupcollide(
+                group, self, False, False, _collided)
+            return collision_dict
         return callback

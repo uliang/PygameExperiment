@@ -20,11 +20,12 @@ from game_objects.tile import Tile
 from game_objects.brick import Brick
 from game_objects.boundary import Boundary
 from game_objects.heap import Heap
+from game_objects.layer import Layer
 from game_objects.event_handlers import *
 import game_objects.tile_shapes as tile_shapes
 
 from game_systems.events import NEWTILE
-from game_systems.utils import yield_random
+from game_systems.utils import yield_random, reduce_dictionary_by_value
 
 
 def main(cfg=Configuration):
@@ -57,6 +58,10 @@ def main(cfg=Configuration):
         surfaces, shapes, cfg.FPS, initial_rect)
     tile_factory: Observer = TileFactory(tile, bricks)
 
+    layers = sprite.Group()
+    layers.add(*[Layer((cfg.W_LEFT, cfg.CEIL + i*cfg.BRICK_HEIGHT), cfg.L_DIMS, i)
+                 for i in range(cfg.DROP_HEIGHT)])
+
     # convenience variables for collision detection
     left, bottom, right = ((-1, 0), (0, 1), (1, 0))
 
@@ -73,6 +78,16 @@ def main(cfg=Configuration):
         .subscribe(on_next=handle_fall(tile, cfg.FALL_SPEED))
 
     event_stream.pipe(
+        ops.filter(lambda x: x.event.type == NEWTILE),
+        ops.map(lambda x: layers),
+        ops.map(heap.did_collide((0, 0))),
+        ops.map(reduce_dictionary_by_value(
+            lambda arr: len(arr) == cfg.L_NUM_BRICKS)),
+        ops.filter(lambda x: bool(x)),
+        ops.map(lambda x: (x, heap))) \
+        .subscribe(on_next=handle_remove_bricks)
+
+    event_stream.pipe(
         ops.filter(lambda x: x.event.type == pygame.KEYDOWN),
         ops.filter(lambda x: x.event.key == pygame.K_s)) \
         .subscribe(on_next=handle_fall(tile, cfg.DIVE_SPEED))
@@ -81,14 +96,14 @@ def main(cfg=Configuration):
         ops.filter(lambda x: x.event.type == pygame.KEYDOWN),
         ops.filter(lambda x: x.event.key == pygame.K_a),
         ops.map(lambda x: tile),
-        ops.filter(lambda x: not heap.did_collide(left)(x)))\
+        ops.filter(lambda x: not bool(heap.did_collide(left)(x))))\
         .subscribe(on_next=handle_move(-cfg.HORIZONTAL_SPEED))
 
     event_stream.pipe(
         ops.filter(lambda x: x.event.type == pygame.KEYDOWN),
         ops.filter(lambda x: x.event.key == pygame.K_d),
         ops.map(lambda x: tile),
-        ops.filter(lambda x: not heap.did_collide(right)(x)))\
+        ops.filter(lambda x: not bool(heap.did_collide(right)(x))))\
         .subscribe(on_next=handle_move(cfg.HORIZONTAL_SPEED))
 
     event_stream.pipe(
@@ -102,18 +117,18 @@ def main(cfg=Configuration):
 
     event_stream.pipe(
         ops.map(lambda x: tile),
-        ops.filter(heap.did_collide(bottom))) \
+        ops.filter(lambda x: bool(heap.did_collide(bottom)(x)))) \
         .subscribe(on_next=handle_landing(heap))
 
     event_stream.pipe(
         ops.map(lambda x: tile),
-        ops.filter(heap.did_collide(right)),
+        ops.filter(lambda x: bool(heap.did_collide(right)(x))),
         ops.filter(lambda x: x.v_x > 0)) \
         .subscribe(on_next=handle_stop)
 
     event_stream.pipe(
         ops.map(lambda x: tile),
-        ops.filter(heap.did_collide(left)),
+        ops.filter(lambda x: bool(heap.did_collide(left)(x))),
         ops.filter(lambda x: x.v_x < 0)) \
         .subscribe(on_next=handle_stop)
 

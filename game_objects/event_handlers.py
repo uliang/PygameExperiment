@@ -1,8 +1,11 @@
+from typing import Dict, Sequence, Tuple
 from pygame import Rect
 from pygame.event import post, Event
 from game_systems.events import NEWTILE
 from game_objects.tile import Tile
 from game_objects.heap import Heap
+from game_objects.brick import Brick
+from game_objects.layer import Layer
 from game_systems.utils import rotator, grid_centroid
 
 
@@ -55,3 +58,18 @@ def handle_rotation(well_offset, grid_spacing, tile, heap):
             for brick in iter(tile):
                 brick.rect.move_ip((0, -grid_spacing))
     return callback
+
+
+def handle_remove_bricks(x: Tuple[Dict[Layer, Sequence[Brick]], Heap]):
+    completed_layer_dict, heap = x
+    for layer, completed_layer in sorted(completed_layer_dict.items(), key=lambda x: x[0].id):
+        top_of_layer = None
+        for i, brick in enumerate(completed_layer):
+            if i == 0:
+                top_of_layer = brick.rect.top
+            brick.kill()
+        for brick in filter(lambda b: b.rect.bottom <= top_of_layer, heap.sprites()):
+            if not isinstance(brick, Brick):
+                continue
+            brick.rect.move_ip((0, brick.rect.height))
+    return

@@ -1,10 +1,11 @@
 import random
-from typing import Sequence, Callable, TypeVar, Iterator, Tuple
+from typing import Sequence, Callable, TypeVar, Iterator, Tuple, Dict
 from toolz.functoolz import curry
 
 from game_objects.brick import Brick
 
 T = TypeVar('T')
+U = TypeVar('U')
 
 
 def argwhere(arr: Sequence[T], predicate: Callable[[T], bool]) -> Sequence[int]:
@@ -54,3 +55,13 @@ def grid_centroid(well_offset, grid_spacing, bricks: Sequence[Brick], ) -> Tuple
     xbar, ybar = left + (xbar//grid_spacing) * \
         grid_spacing, top + (ybar//grid_spacing)*grid_spacing
     return xbar, ybar
+
+
+@curry
+def reduce_dictionary_by_value(predicate: Callable[[U], bool], dictionary: Dict[T, U]) -> Dict[T, U]:
+    ''' Returns only key-value mapping which satisfies predicate(value)'''
+    rdict = {}
+    for t, u in dictionary.items():
+        if predicate(u):
+            rdict[t] = u
+    return rdict
